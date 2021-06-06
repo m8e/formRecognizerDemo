@@ -10,13 +10,6 @@ namespace Contoso
 {
     public class ProcessFormOrchestrator 
     {
-        private readonly IHttpClientFactory _clientFactory;
-
-        public ProcessFormOrchestrator(IHttpClientFactory clientFactory)
-        {
-            _clientFactory = clientFactory;
-        }
-
         [FunctionName("ExtractFormValue_Orchestrator")]
         public async Task<string> RunOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context,ILogger log)
         {
@@ -28,14 +21,17 @@ namespace Contoso
                 validator.ValidateAndThrow(payload);
 
                 string jsonResponse = await context.CallActivityAsync<string>("GetFormValue",payload);
+                var response = new Response 
+                { 
+                    WebHookUri = payload.WebHookUrl,
+                    Forms = jsonResponse
+                };
 
-                // Send answer to webhook
-                // var httpClient = _httpFactory.CreateClient();
-                //await httpClient.PostAsJsonAsync(payload.WebHookUrl,forms);
+                await context.CallActivityAsync<string>("SendAnswer", response);
 
                 return jsonResponse;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 log.LogError(ex.Message,ex);
                 throw;
