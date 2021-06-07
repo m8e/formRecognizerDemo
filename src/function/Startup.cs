@@ -5,7 +5,6 @@ using Azure.AI.FormRecognizer.Models;
 using Azure.AI.FormRecognizer.Training;
 using Azure;
 using System;
-using FluentValidation;
 
 [assembly: FunctionsStartup(typeof(Contoso.Startup))]
 

@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Azure.AI.FormRecognizer;
 using Azure.AI.FormRecognizer.Models;
-using FluentValidation;
 
 namespace Contoso
 {
@@ -32,8 +31,8 @@ namespace Contoso
             var payload = JsonConvert.DeserializeObject<Payload>(requestBody);
             payload.ModelId = Environment.GetEnvironmentVariable("ModelId");
 
-            var validator = new PayloadValidator();
-            validator.ValidateAndThrow(payload);
+            //var validator = new PayloadValidator();
+            //validator.ValidateAndThrow(payload);
 
             RecognizedFormCollection forms = await _formRecognizer.StartRecognizeCustomFormsFromUri(payload.ModelId,
                                                                                                     new Uri(payload.FileUri))
