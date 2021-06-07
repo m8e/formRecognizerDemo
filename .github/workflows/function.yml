@@ -8,8 +8,7 @@ on:
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './src/function'
   AZURE_FUNCTIONAPP_NAME: fnappjuulw7l27crfm
-  DOTNET_VERSION: '3.1.15'
-
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +19,7 @@ jobs:
       - name: Setup DotNet 3.1.x Environment
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 3.1.15
+          dotnet-version: 3.1.x
 
       - name: 'Resolve Project Depencies Using Dotnet'
         shell: bash
