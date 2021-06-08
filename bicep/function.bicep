@@ -1,14 +1,72 @@
 @description('Location for all resources except Application Insights.')
 param location string = resourceGroup().location
 
-var appName = 'fnapp${uniqueString(resourceGroup().id)}'
-var workspaceName = 'wrk${uniqueString(resourceGroup().id)}'
+var prefix = uniqueString(resourceGroup().id)
+var appName = 'fnapp${prefix}'
+var workspaceName = 'wrk${prefix}'
 var storageAccountType = 'Standard_LRS'
 var functionAppName_var = appName
 var hostingPlanName_var = appName
 var applicationInsightsName_var = appName
-var storageAccountName_var = '${uniqueString(resourceGroup().id)}azfunctions'
+var storageAccountName_var = '${prefix}azfunctions'
 var appInsightsResourceId = applicationInsightsName.id
+var serviceBusNamespaceName = 'srvbus-${prefix}'
+var queueProcessing = 'processForm'
+var processed = 'processedForm'
+var formRecognizerName = 'frmRecon-${prefix}'
+
+resource formRecognizer 'Microsoft.CognitiveServices/accounts@2017-04-18' = {
+  name: formRecognizerName
+  location: location
+  sku: {
+    name: 'S0'
+  }
+  kind: 'FormRecognizer'
+}
+
+resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2017-04-01' = {
+  name: serviceBusNamespaceName
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {}
+}
+
+resource serviceBusQueueToProcess 'Microsoft.ServiceBus/namespaces/queues@2017-04-01' = {
+  name: '${serviceBusNamespace.name}/${queueProcessing}'
+  properties: {
+    lockDuration: 'PT5M'
+    maxSizeInMegabytes: 1024
+    requiresDuplicateDetection: false
+    requiresSession: false
+    defaultMessageTimeToLive: 'P10675199DT2H48M5.4775807S'
+    deadLetteringOnMessageExpiration: false
+    duplicateDetectionHistoryTimeWindow: 'PT10M'
+    maxDeliveryCount: 10
+    autoDeleteOnIdle: 'P10675199DT2H48M5.4775807S'
+    enablePartitioning: false
+    enableExpress: false
+  }
+}
+
+resource serviceBusQueueProcessed 'Microsoft.ServiceBus/namespaces/queues@2017-04-01' = {
+  name: '${serviceBusNamespace.name}/${processed}'
+  properties: {
+    lockDuration: 'PT5M'
+    maxSizeInMegabytes: 1024
+    requiresDuplicateDetection: false
+    requiresSession: false
+    defaultMessageTimeToLive: 'P10675199DT2H48M5.4775807S'
+    deadLetteringOnMessageExpiration: false
+    duplicateDetectionHistoryTimeWindow: 'PT10M'
+    maxDeliveryCount: 10
+    autoDeleteOnIdle: 'P10675199DT2H48M5.4775807S'
+    enablePartitioning: false
+    enableExpress: false
+  }
+}
+
 
 resource storageAccountName 'Microsoft.Storage/storageAccounts@2019-06-01' = {
   location: location

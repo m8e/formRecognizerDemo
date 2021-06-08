@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Azure.AI.FormRecognizer;
 using Azure.AI.FormRecognizer.Models;
+using FluentValidation;
 
 namespace Contoso
 {
@@ -22,26 +23,26 @@ namespace Contoso
         }
 
         [FunctionName("AnalyzeForm")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            ILogger log)
+        [return: ServiceBus("processedForm", Connection = "StrBusCnx")]
+        public async Task<string> Run([ServiceBusTrigger("processForm", Connection = "StrBusCnx")] string mySbMsg,
+                                      ILogger log)
         {
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var payload = JsonConvert.DeserializeObject<Payload>(requestBody);
+            var payload = JsonConvert.DeserializeObject<Payload>(mySbMsg);
             payload.ModelId = Environment.GetEnvironmentVariable("ModelId");
 
-            //var validator = new PayloadValidator();
-            //validator.ValidateAndThrow(payload);
-
+            var validator = new PayloadValidator();
+            validator.ValidateAndThrow(payload);
+            
+            // To not overload the TPS of Form Recognizer we added a 10 seconds delay for the pulling result
             RecognizedFormCollection forms = await _formRecognizer.StartRecognizeCustomFormsFromUri(payload.ModelId,
                                                                                                     new Uri(payload.FileUri))
-                                                                  .WaitForCompletionAsync();
+                                                                  .WaitForCompletionAsync(new TimeSpan(0, 0, 10));
 
             var serializedObject = JsonConvert.SerializeObject(forms);
 
-            return new ObjectResult(serializedObject);
+            return serializedObject;
 
-        }
+        }      
     }
 }
