@@ -39,7 +39,14 @@ namespace Contoso
                                                                                                     new Uri(payload.FileUri))
                                                                   .WaitForCompletionAsync(new TimeSpan(0, 0, 10));
 
-            var serializedObject = JsonConvert.SerializeObject(forms);
+            var document = new Document()
+            {
+                DocumentId = payload.DocumentId,
+                ExtractedText = JsonConvert.SerializeObject(forms),
+                WebHook = payload.WebHook
+            };
+
+            var serializedObject = JsonConvert.SerializeObject(document);
 
             return serializedObject;
 
