@@ -1,13 +1,11 @@
 name: Deploy Azure Resources
 
-on:  
- push:
-   branches:
-     - 'main'
-    paths:
+on:
+  push:    
+    paths:      
       - 'bicep/*.bicep'      
       - '.github/workflows/infra.yml'
-  workflow_dispatch:
+  workflow_dispatch:      
     
 env:
   RESOURCE_GROUP_NAME: form-recognizer-int-demo
