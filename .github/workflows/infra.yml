@@ -1,0 +1,49 @@
+name: Deploy Azure Resources
+
+on:  
+ push:
+   branches:
+     - 'main'
+    paths:
+      - 'bicep/*.bicep'      
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+    
+env:
+  RESOURCE_GROUP_NAME: form-recognizer-int-demo
+  LOCATION: eastus
+
+jobs:
+  deploy_apim_resources:
+    runs-on: ubuntu-latest 
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      # Login to Azure
+      - name: Azure Login
+        uses: Azure/login@v1.1
+        with:          
+          creds: ${{ secrets.AZURE_CREDENTIALS }}          
+          enable-AzPSSession: false
+      
+      # Compile bicep files
+      - name: Bicep Build
+        uses: aliencube/bicep-build-actions@v0.1
+        with:
+          files: bicep/main.bicep
+                
+      # Create resource group
+      - name: Create Resource Group
+        run: |
+         az group create -n ${{ env.RESOURCE_GROUP_NAME }} -l ${{ env.LOCATION }}  
+
+      - name: Deploy Azure Resources
+        uses: Azure/arm-deploy@main
+        with:        
+          scope: resourcegroup          
+          subscriptionId: ${{ secrets.SUBSCRIPTION_ID }}          
+          region: ${{ env.LOCATION }}        
+          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}        
+          template: bicep/main.json   
+          deploymentMode: Incremental
