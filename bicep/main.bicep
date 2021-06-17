@@ -9,3 +9,19 @@ module bus './modules/servicebus.bicep' = {
     suffix: suffix
   }
 }
+
+module cognitive './modules/cognitive.bicep' = {
+  name: 'cognitive'
+  params: {
+    location: location
+    suffix: suffix
+  }
+}
+
+module function 'modules/function.bicep' = {
+  name: 'function'
+  params: {
+    location: location
+    suffix: suffix
+  }
+}
